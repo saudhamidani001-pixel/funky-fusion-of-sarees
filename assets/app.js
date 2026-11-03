@@ -39,7 +39,13 @@ function shade(hex, pct) {
   const f = (v) => Math.max(0, Math.min(255, Math.round(v + (pct / 100) * 255)));
   return "#" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, "0")).join("");
 }
-const productImg = (p) => p.image || sareeArt(p.colors[0], p.colors[1], PRODUCTS.indexOf(p) + 1);
+const productImages = (p) => (p.images && p.images.length ? p.images : p.image ? [p.image] : [sareeArt(p.colors[0], p.colors[1], PRODUCTS.indexOf(p) + 1)]);
+const productImg = (p) => productImages(p)[0];
+const hasPrice = (p) => typeof p.price === "number" && p.price > 0;
+const priceHtml = (p) => hasPrice(p)
+  ? `${money(p.price)}${p.compareAt ? `<s>${money(p.compareAt)}</s>` : ""}`
+  : `<span class="on-request">Price on request</span>`;
+const askLink = (p) => `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(`Hi! I'm interested in the "${p.name}". What is the price and is it available?`)}`;
 
 // ---------- Cart (stored in this browser) ----------
 const CART_KEY = "ffs-cart";
@@ -64,7 +70,7 @@ function setQty(id, qty) {
   saveCart(cart);
 }
 function cartLines() {
-  return getCart().map((l) => ({ ...l, product: findProduct(l.id) })).filter((l) => l.product);
+  return getCart().map((l) => ({ ...l, product: findProduct(l.id) })).filter((l) => l.product && hasPrice(l.product));
 }
 function cartTotals() {
   const subtotal = cartLines().reduce((s, l) => s + l.product.price * l.qty, 0);
@@ -72,7 +78,7 @@ function cartTotals() {
   return { subtotal, delivery, total: subtotal + delivery };
 }
 function updateCartCount() {
-  const n = getCart().reduce((s, l) => s + l.qty, 0);
+  const n = cartLines().reduce((s, l) => s + l.qty, 0);
   document.querySelectorAll(".cart-count").forEach((el) => (el.textContent = n));
 }
 
@@ -87,7 +93,7 @@ function toast(msg) {
 }
 
 function productCard(p) {
-  const sale = p.compareAt ? Math.round((1 - p.price / p.compareAt) * 100) : 0;
+  const sale = hasPrice(p) && p.compareAt ? Math.round((1 - p.price / p.compareAt) * 100) : 0;
   return `<div class="card">
     <a href="product.html?id=${p.id}" class="img-wrap">
       <img src="${productImg(p)}" alt="${esc(p.name)}" loading="lazy">
@@ -97,8 +103,10 @@ function productCard(p) {
     <div class="info">
       <div class="cat">${esc(p.category)}</div>
       <a href="product.html?id=${p.id}"><h3>${esc(p.name)}</h3></a>
-      <div class="price">${money(p.price)}${p.compareAt ? `<s>${money(p.compareAt)}</s>` : ""}</div>
-      <button class="btn outline quick" data-add="${p.id}">Add to bag</button>
+      <div class="price">${priceHtml(p)}</div>
+      ${hasPrice(p)
+        ? `<button class="btn outline quick" data-add="${p.id}">Add to bag</button>`
+        : `<a class="btn outline quick" href="${askLink(p)}" target="_blank" rel="noopener">Ask on WhatsApp</a>`}
     </div>
   </div>`;
 }
@@ -144,9 +152,12 @@ function renderLayout() {
 // ---------- Pages ----------
 const pages = {
   home() {
-    document.getElementById("hero-img").src = productImg(PRODUCTS[0]);
-    document.getElementById("story-img").src = productImg(PRODUCTS[6]);
-    document.getElementById("collections").innerHTML = CATEGORIES.map((c) => {
+    const pick = (id, i) => findProduct(id) || PRODUCTS[i % PRODUCTS.length];
+    document.getElementById("hero-img").src = productImg(pick("tissue-blush", 0));
+    document.getElementById("story-img").src = productImg(pick("banarasi-black", 1));
+    const cols = document.getElementById("collections");
+    cols.classList.toggle("few", CATEGORIES.length < 4);
+    cols.innerHTML = CATEGORIES.map((c) => {
       const p = PRODUCTS.find((x) => x.category === c);
       const count = PRODUCTS.filter((x) => x.category === c).length;
       return `<a class="collection" href="shop.html?cat=${encodeURIComponent(c)}">
@@ -166,8 +177,9 @@ const pages = {
     const draw = () => {
       filters.innerHTML = ["All", ...CATEGORIES].map((c) => `<button class="chip ${c === cat ? "active" : ""}" data-cat="${c}">${c}</button>`).join("");
       let list = PRODUCTS.filter((p) => cat === "All" || p.category === cat);
-      if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
-      if (sort === "high") list = [...list].sort((a, b) => b.price - a.price);
+      const pv = (p, dir) => (hasPrice(p) ? p.price : dir * Infinity);
+      if (sort === "low") list = [...list].sort((a, b) => pv(a, 1) - pv(b, 1));
+      if (sort === "high") list = [...list].sort((a, b) => pv(b, -1) - pv(a, -1));
       grid.innerHTML = list.map(productCard).join("");
       count.textContent = `${list.length} saree${list.length === 1 ? "" : "s"}`;
       document.getElementById("shop-title").textContent = cat === "All" ? "Shop All Sarees" : `${cat} Sarees`;
@@ -188,25 +200,40 @@ const pages = {
     const root = document.getElementById("product");
     if (!p) { root.innerHTML = `<div class="empty"><h2>Saree not found</h2><a class="btn" href="shop.html">Back to shop</a></div>`; return; }
     document.title = `${p.name} · ${STORE.name}`;
+    const imgs = productImages(p);
+    const buy = hasPrice(p)
+      ? `<div class="qty"><button data-q="-1">−</button><input id="qty" type="number" min="1" value="1"><button data-q="1">+</button></div>
+        <div class="buy-row">
+          <button class="btn" id="add">Add to bag</button>
+          <button class="btn gold" id="buy">Buy now</button>
+        </div>`
+      : `<div class="buy-row"><a class="btn gold" href="${askLink(p)}" target="_blank" rel="noopener">Ask price on WhatsApp</a></div>`;
     root.innerHTML = `<div class="product">
-      <div class="main-img"><img src="${productImg(p)}" alt="${esc(p.name)}"></div>
+      <div>
+        <div class="main-img"><img id="main-img" src="${imgs[0]}" alt="${esc(p.name)}"></div>
+        ${imgs.length > 1 ? `<div class="thumbs">${imgs.map((src, i) => `<button class="${i ? "" : "active"}" data-img="${src}" aria-label="Photo ${i + 1}"><img src="${src}" alt=""></button>`).join("")}</div>` : ""}
+      </div>
       <div>
         <div class="crumbs"><a href="index.html">Home</a> / <a href="shop.html?cat=${encodeURIComponent(p.category)}">${esc(p.category)}</a></div>
         <h1>${esc(p.name)}</h1>
-        <div class="price">${money(p.price)}${p.compareAt ? `<s>${money(p.compareAt)}</s>` : ""}</div>
+        <div class="price">${priceHtml(p)}</div>
         <p class="desc">${esc(p.description)}</p>
         <div class="spec">
           <div><span>Fabric</span><span>${esc(p.fabric)}</span></div>
           <div><span>Length</span><span>5.5 m saree + 0.8 m blouse piece</span></div>
           <div><span>Care</span><span>Dry clean recommended</span></div>
         </div>
-        <div class="qty"><button data-q="-1">−</button><input id="qty" type="number" min="1" value="1"><button data-q="1">+</button></div>
-        <div class="buy-row">
-          <button class="btn" id="add">Add to bag</button>
-          <button class="btn gold" id="buy">Buy now</button>
-        </div>
+        ${buy}
         <p class="note">✦ Cash on Delivery available · Delivery in 3–5 working days</p>
       </div></div>`;
+    root.querySelectorAll("[data-img]").forEach((b) => b.addEventListener("click", () => {
+      document.getElementById("main-img").src = b.dataset.img;
+      root.querySelectorAll("[data-img]").forEach((x) => x.classList.toggle("active", x === b));
+    }));
+    const related = PRODUCTS.filter((x) => x.id !== p.id)
+      .sort((a, b) => (b.category === p.category) - (a.category === p.category)).slice(0, 4);
+    document.getElementById("related").innerHTML = related.map(productCard).join("");
+    if (!hasPrice(p)) return;
     const qty = document.getElementById("qty");
     root.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", () => {
       qty.value = Math.max(1, (parseInt(qty.value) || 1) + Number(b.dataset.q));
@@ -214,8 +241,6 @@ const pages = {
     const n = () => Math.max(1, parseInt(qty.value) || 1);
     document.getElementById("add").addEventListener("click", () => addToCart(p.id, n()));
     document.getElementById("buy").addEventListener("click", () => { addToCart(p.id, n()); location.href = "checkout.html"; });
-    const related = PRODUCTS.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 4);
-    document.getElementById("related").innerHTML = related.map(productCard).join("");
   },
 
   cart() {

@@ -11,45 +11,31 @@ const STORE = {
 };
 
 // ===== Products =====
-// To use a real photo, add  image: "images/your-photo.jpg"  to a product.
-// Without an image, a patterned saree illustration is drawn from `colors`.
+// price: a number, e.g. 12500. Leave it as null to show "Price on request"
+//        with an "Ask on WhatsApp" button instead of "Add to bag".
+// images: photos in the images/ folder. The first one is the main photo.
 const PRODUCTS = [
-  { id: "banarasi-maroon", name: "Royal Banarasi Silk", category: "Silk", price: 18500, compareAt: 21000,
-    colors: ["#7a1f2b", "#d4af37"], fabric: "Pure Banarasi silk with zari weave", badge: "Bestseller",
-    description: "A deep maroon Banarasi with a heavy gold zari border and woven buti all over. Made for weddings and big days." },
-  { id: "kanjeevaram-emerald", name: "Emerald Kanjeevaram", category: "Silk", price: 22000,
-    colors: ["#0f5c4a", "#e0b04c"], fabric: "Kanjeevaram silk, contrast border",
-    description: "Rich emerald green body with a temple-motif gold border and a grand pallu." },
-  { id: "organza-blush", name: "Blush Organza Floral", category: "Party Wear", price: 9800,
-    colors: ["#f2c4c4", "#b85c6e"], fabric: "Organza with hand-painted florals", badge: "New",
-    description: "Light, sheer blush organza with painted florals and a scalloped edge. Perfect for daytime events." },
-  { id: "georgette-midnight", name: "Midnight Sequin Georgette", category: "Party Wear", price: 12500, compareAt: 14500,
-    colors: ["#1c2340", "#c0c6e0"], fabric: "Georgette with sequin work",
-    description: "A navy georgette scattered with silver sequins that catch the light on every move." },
-  { id: "chiffon-mustard", name: "Mustard Chiffon Lehariya", category: "Casual", price: 5400,
-    colors: ["#d9a227", "#8a3b12"], fabric: "Soft chiffon, lehariya print",
-    description: "Easy-drape chiffon in a sunny mustard with rust lehariya waves." },
-  { id: "cotton-indigo", name: "Indigo Handloom Cotton", category: "Casual", price: 4200,
-    colors: ["#2b3f73", "#f1e7d0"], fabric: "Handloom cotton, block print",
-    description: "Breathable handloom cotton in indigo with hand block-printed borders. Everyday elegance." },
-  { id: "fusion-predraped", name: "Pre-Draped Fusion Saree", category: "Fusion", price: 11000, badge: "Fusion",
-    colors: ["#5b2a6e", "#f0a8c8"], fabric: "Crepe, stitched pleats",
-    description: "Ready to wear in a minute — pre-stitched pleats in plum crepe with a pink belt detail." },
-  { id: "fusion-cape", name: "Saree with Cape Blouse", category: "Fusion", price: 13800, compareAt: 15500,
-    colors: ["#0d0d0d", "#d4af37"], fabric: "Satin saree, embroidered cape",
-    description: "Black satin saree paired with a sheer embroidered cape. Modern drape, traditional soul." },
-  { id: "silk-peacock", name: "Peacock Paithani Silk", category: "Silk", price: 19500,
-    colors: ["#1e6f8f", "#9bc53d"], fabric: "Paithani silk, peacock pallu",
-    description: "Peacock blue silk with a green and gold peacock-motif pallu, woven the traditional way." },
-  { id: "party-wine", name: "Wine Velvet Border Saree", category: "Party Wear", price: 10500,
-    colors: ["#5e1224", "#e8c07d"], fabric: "Silk-blend with velvet border",
-    description: "Wine silk-blend with a plush velvet border and gota detailing for winter weddings." },
-  { id: "casual-mint", name: "Mint Linen Saree", category: "Casual", price: 4900,
-    colors: ["#a8d5c2", "#3f6b5c"], fabric: "Linen with tassel pallu",
-    description: "Crisp mint linen with a tasselled pallu. Light, cool and office-ready." },
-  { id: "fusion-dhoti", name: "Dhoti-Style Fusion Drape", category: "Fusion", price: 9600, badge: "New",
-    colors: ["#c2492c", "#f6d27a"], fabric: "Cotton silk, dhoti drape",
-    description: "Burnt orange cotton silk in a dhoti-style drape — bold, comfy and very funky." },
+  { id: "tissue-blush", name: "Blush Pink Tissue Silk Saree", category: "Tissue Silk", price: null, badge: "New",
+    images: ["images/tissue-blush.jpg"],
+    fabric: "Tissue silk with sequin & thread embroidery",
+    description: "Soft blush pink tissue silk scattered with hand-embroidered floral motifs, finished with a shimmering gold pallu of large sequinned flower bunches. Comes with a matching gold tissue blouse piece." },
+  { id: "tissue-ice-blue", name: "Ice Blue Tissue Silk Saree", category: "Tissue Silk", price: null, badge: "New",
+    images: ["images/tissue-ice-blue.jpg"],
+    fabric: "Tissue silk with sequin & thread embroidery, tasselled pallu",
+    description: "A cool ice blue tissue silk with peach and mint floral embroidery, a rich gold embroidered pallu and hand-knotted tassels. Comes with a gold tissue blouse piece." },
+  { id: "tissue-mauve", name: "Mauve Tissue Silk Saree", category: "Tissue Silk", price: null,
+    images: ["images/tissue-mauve.jpg"],
+    fabric: "Tissue silk with sequin & thread embroidery",
+    description: "Elegant mauve tissue silk with delicate embroidered florals and a gold pallu featuring large wine and pink sequinned bouquets. Comes with an embroidered gold blouse piece." },
+  { id: "banarasi-black", name: "Black Banarasi with Ghungroo Lace", category: "Banarasi", price: null, badge: "Bestseller",
+    images: ["images/banarasi-black-1.jpg", "images/banarasi-black-2.jpg", "images/banarasi-black-3.jpg"],
+    fabric: "Banarasi silk, zari weave, gota lace with ghungroo",
+    description: "Classic black Banarasi with woven buti, a wide antique-gold zari border and pallu, finished with gota lace and tiny ghungroo bells all around. Statement wear for weddings and dholkis." },
+  { id: "jamawar-peacock", name: "Peacock Blue Jamawar Saree", category: "Jamawar", price: null,
+    images: ["images/jamawar-blue-1.jpg", "images/jamawar-blue-2.jpg", "images/jamawar-blue-3.jpg"],
+    fabric: "Jamawar weave, paisley pallu, contrast teal blouse piece",
+    description: "Deep peacock blue with all-over floral buti and a grand multi-colour paisley pallu and border. Paired with a contrasting teal blouse piece. Perfect for winter events." },
 ];
 
-const CATEGORIES = ["Silk", "Party Wear", "Casual", "Fusion"];
+// Collections shown in the menu, in this order (only ones with products appear).
+const CATEGORIES = ["Tissue Silk", "Banarasi", "Jamawar"].filter((c) => PRODUCTS.some((p) => p.category === c));
