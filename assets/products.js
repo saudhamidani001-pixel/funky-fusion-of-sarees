@@ -2,8 +2,7 @@
 const STORE = {
   name: "Funky Fusion Of Sarees",
   // WhatsApp number that receives orders: country code + number, digits only.
-  // CHANGE THIS before going live.
-  whatsapp: "923000000000",
+  whatsapp: "923013603636",
   currency: "Rs.",
   deliveryFee: 250,
   freeDeliveryOver: 10000,
