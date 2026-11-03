@@ -1,51 +1,55 @@
-// Shared store logic: header/footer, cart, product art, page rendering.
+// Shared store logic: header/footer, cart, payments, page rendering.
 
 const money = (n) => `${STORE.currency} ${Number(n).toLocaleString("en-US")}`;
 const findProduct = (id) => PRODUCTS.find((p) => p.id === id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const waLink = (text) => `https://wa.me/${STORE.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 
-// ---------- Saree illustration (used until real photos are added) ----------
-function sareeArt(c1, c2, seed = 1) {
-  const motifs = [];
-  for (let y = 40; y < 520; y += 46) {
-    for (let x = 30 + ((y / 46) % 2) * 23; x < 300; x += 46) {
-      motifs.push(`<circle cx="${x}" cy="${y}" r="${2.5 + (seed % 3)}" fill="${c2}" opacity=".55"/>`);
-    }
-  }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400">
-    <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${shade(c1, -25)}"/>
-      </linearGradient>
-      <linearGradient id="sh" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#000" stop-opacity=".18"/><stop offset=".5" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".2"/>
-      </linearGradient>
-      <pattern id="b" width="16" height="16" patternUnits="userSpaceOnUse">
-        <rect width="16" height="16" fill="${c2}"/><path d="M8 2 L14 8 L8 14 L2 8Z" fill="${shade(c2, -30)}"/>
-      </pattern>
-    </defs>
-    <rect width="300" height="400" fill="url(#g)"/>
-    <g transform="rotate(-8 150 200)">${motifs.join("")}</g>
-    <path d="M0 250 Q150 ${200 + (seed % 5) * 8} 300 230 L300 400 L0 400Z" fill="${shade(c1, -12)}"/>
-    <path d="M0 250 Q150 ${200 + (seed % 5) * 8} 300 230 L300 262 Q150 ${232 + (seed % 5) * 8} 0 282Z" fill="url(#b)"/>
-    <path d="M190 0 L230 0 L170 400 L130 400Z" fill="url(#b)" opacity=".9"/>
-    <rect width="300" height="400" fill="url(#sh)"/>
-    <rect x="8" y="8" width="284" height="384" fill="none" stroke="${c2}" stroke-opacity=".5"/>
-  </svg>`;
-  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-}
-function shade(hex, pct) {
-  const n = parseInt(hex.slice(1), 16);
-  const f = (v) => Math.max(0, Math.min(255, Math.round(v + (pct / 100) * 255)));
-  return "#" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, "0")).join("");
-}
-const productImages = (p) => (p.images && p.images.length ? p.images : p.image ? [p.image] : [sareeArt(p.colors[0], p.colors[1], PRODUCTS.indexOf(p) + 1)]);
-const productImg = (p) => productImages(p)[0];
+// ---------- Icons ----------
+const ICON = {
+  bag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h18M3 12h18M3 17h12"/></svg>',
+  wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>',
+  truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6l-8-3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+};
+
+// ---------- Product helpers ----------
+const productImages = (p) => (p.images && p.images.length ? p.images : p.image ? [p.image] : []);
+const productImg = (p) => productImages(p)[0] || "";
 const hasPrice = (p) => typeof p.price === "number" && p.price > 0;
+const salePct = (p) => (hasPrice(p) && p.compareAt > p.price ? Math.round((1 - p.price / p.compareAt) * 100) : 0);
 const priceHtml = (p) => hasPrice(p)
   ? `${money(p.price)}${p.compareAt ? `<s>${money(p.compareAt)}</s>` : ""}`
   : `<span class="on-request">Price on request</span>`;
-const askLink = (p) => `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(`Hi! I'm interested in the "${p.name}". What is the price and is it available?`)}`;
+const askLink = (p) => waLink(`Hi! I'm interested in the "${p.name}". Is it available?`);
+
+// ---------- Payment methods ----------
+const PAY_METHODS = [
+  { id: "cod", name: "Cash on Delivery", note: "Pay in cash when your saree arrives.", tag: "Most popular" },
+  { id: "bank", name: "Bank Transfer", note: "Transfer to our bank account and send the screenshot on WhatsApp." },
+  { id: "wallet", name: "JazzCash / Easypaisa", note: "Send to our mobile wallet and share the screenshot on WhatsApp." },
+];
+function payDetailsRows(id) {
+  const P = STORE.payments || {};
+  const rows = id === "bank"
+    ? [["Bank", P.bank?.bankName], ["Account title", P.bank?.accountTitle], ["Account no.", P.bank?.accountNumber], ["IBAN", P.bank?.iban]]
+    : id === "wallet"
+    ? [["JazzCash", P.wallet?.jazzcash], ["Easypaisa", P.wallet?.easypaisa], ["Account title", P.wallet?.accountTitle]]
+    : [];
+  return rows.filter(([, v]) => v);
+}
+function payDetailsHtml(id) {
+  if (id === "cod") return "";
+  const rows = payDetailsRows(id);
+  return `<div class="pay-details">${rows.length
+    ? rows.map(([k, v]) => `<div><span>${k}</span><strong>${esc(v)}</strong></div>`).join("")
+    : `Our account details will be sent to you on WhatsApp when we confirm your order.`}</div>`;
+}
+const payChips = () => PAY_METHODS.map((m) => `<span>${m.id === "wallet" ? "JazzCash · Easypaisa" : m.name}</span>`).join("");
 
 // ---------- Cart (stored in this browser) ----------
 const CART_KEY = "ffs-cart";
@@ -89,62 +93,82 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.remove("show"), 2200);
+  t._h = setTimeout(() => t.classList.remove("show"), 2400);
 }
 
-function productCard(p) {
-  const sale = hasPrice(p) && p.compareAt ? Math.round((1 - p.price / p.compareAt) * 100) : 0;
-  return `<div class="card">
-    <a href="product.html?id=${p.id}" class="img-wrap">
-      <img src="${productImg(p)}" alt="${esc(p.name)}" loading="lazy">
-      ${p.badge ? `<span class="badge">${esc(p.badge)}</span>` : ""}
-      ${sale ? `<span class="badge sale">-${sale}%</span>` : ""}
-    </a>
+function productCard(p, i = 0) {
+  const imgs = productImages(p);
+  const sale = salePct(p);
+  return `<div class="card reveal d${i % 4}">
+    <div class="media">
+      <a href="product.html?id=${p.id}" class="img-wrap">
+        <img src="${imgs[0]}" alt="${esc(p.name)}" loading="lazy">
+        ${imgs[1] ? `<img class="alt" src="${imgs[1]}" alt="" loading="lazy">` : ""}
+        ${p.badge ? `<span class="badge">${esc(p.badge)}</span>` : ""}
+        ${sale ? `<span class="badge sale">−${sale}%</span>` : ""}
+      </a>
+      ${hasPrice(p)
+        ? `<button class="quick" data-add="${p.id}">+ Add to bag</button>`
+        : `<a class="quick" href="${askLink(p)}" target="_blank" rel="noopener">Ask on WhatsApp</a>`}
+    </div>
     <div class="info">
       <div class="cat">${esc(p.category)}</div>
-      <a href="product.html?id=${p.id}"><h3>${esc(p.name)}</h3></a>
+      <h3><a href="product.html?id=${p.id}">${esc(p.name)}</a></h3>
       <div class="price">${priceHtml(p)}</div>
-      ${hasPrice(p)
-        ? `<button class="btn outline quick" data-add="${p.id}">Add to bag</button>`
-        : `<a class="btn outline quick" href="${askLink(p)}" target="_blank" rel="noopener">Ask on WhatsApp</a>`}
     </div>
   </div>`;
+}
+
+function observeReveals() {
+  const els = document.querySelectorAll(".reveal:not(.in)");
+  if (!("IntersectionObserver" in window)) { els.forEach((e) => e.classList.add("in")); return; }
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+  }), { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+  els.forEach((e) => io.observe(e));
 }
 
 function renderLayout() {
   const page = document.body.dataset.page;
   const link = (href, label, key) => `<a href="${href}" class="${page === key ? "active" : ""}">${label}</a>`;
   document.body.insertAdjacentHTML("afterbegin", `
-    <div class="topbar">FREE DELIVERY ON ORDERS OVER ${money(STORE.freeDeliveryOver).toUpperCase()} · CASH ON DELIVERY NATIONWIDE</div>
+    <div class="topbar">Free delivery over ${money(STORE.freeDeliveryOver)} &nbsp;✦&nbsp; Cash on Delivery nationwide</div>
     <header class="header"><div class="container">
-      <button class="menu-btn" aria-label="Menu">&#9776;</button>
-      <a href="index.html" class="logo"><span class="main">Funky Fusion</span><span class="sub">Of Sarees</span></a>
+      <button class="menu-btn" aria-label="Menu">${ICON.menu}</button>
       <nav class="nav">
-        ${link("index.html", "Home", "home")}
         ${link("shop.html", "Shop All", "shop")}
         ${CATEGORIES.map((c) => `<a href="shop.html?cat=${encodeURIComponent(c)}">${c}</a>`).join("")}
       </nav>
-      <a href="cart.html" class="cart-link">Bag <span class="cart-count">0</span></a>
+      <a href="index.html" class="logo" aria-label="${esc(STORE.name)} home"><span class="main">Funky <em>Fusion</em></span><span class="sub">Of Sarees</span></a>
+      <div class="header-right">
+        <a class="wa-link" href="${waLink()}" target="_blank" rel="noopener">${ICON.wa}<span>Help</span></a>
+        <a href="cart.html" class="cart-link" aria-label="Bag">${ICON.bag}<span class="cart-count">0</span></a>
+      </div>
     </div></header>`);
   document.body.insertAdjacentHTML("beforeend", `
-    <div class="motif"></div>
     <footer class="footer"><div class="container">
+      <p class="footer-big">Drape it <em>your</em> way.</p>
       <div class="cols">
-        <div><h4>${esc(STORE.name)}</h4><p>Handpicked sarees where tradition meets a funky twist. Every drape tells a story — make it yours.</p></div>
-        <div><h4>Shop</h4>${CATEGORIES.map((c) => `<a href="shop.html?cat=${encodeURIComponent(c)}">${c}</a>`).join("")}</div>
+        <div><h4>${esc(STORE.name)}</h4><p style="margin:0;max-width:320px">Handpicked sarees where tradition meets a funky twist. Real photos, honest prices, delivered to your door.</p></div>
+        <div><h4>Shop</h4><a href="shop.html">All sarees</a>${CATEGORIES.map((c) => `<a href="shop.html?cat=${encodeURIComponent(c)}">${c}</a>`).join("")}</div>
         <div><h4>Contact</h4>
-          <a href="https://wa.me/${STORE.whatsapp}" target="_blank" rel="noopener">WhatsApp us</a>
+          <a href="${waLink()}" target="_blank" rel="noopener">WhatsApp</a>
           <a href="${STORE.instagram}" target="_blank" rel="noopener">Instagram</a>
           <a href="mailto:${STORE.email}">Email</a>
         </div>
+        <div><h4>We accept</h4><div class="pay-chips">${payChips()}</div></div>
       </div>
-      <div class="copy">© ${new Date().getFullYear()} ${esc(STORE.name)}. All rights reserved.</div>
-    </div></footer>`);
-  const btn = document.querySelector(".menu-btn");
-  btn.addEventListener("click", () => document.querySelector(".nav").classList.toggle("open"));
+      <div class="copy"><span>© ${new Date().getFullYear()} ${esc(STORE.name)}</span><span>Delivery in 3–5 working days, nationwide</span></div>
+    </div></footer>
+    <a class="wa-float" href="${waLink("Hi! I have a question about a saree.")}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">${ICON.wa}</a>`);
+
+  document.querySelector(".menu-btn").addEventListener("click", () => document.querySelector(".nav").classList.toggle("open"));
+  const header = document.querySelector(".header");
+  const onScroll = () => header.classList.toggle("scrolled", scrollY > 10);
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-add]");
-    if (b) addToCart(b.dataset.add, 1);
+    if (b) { e.preventDefault(); addToCart(b.dataset.add, 1); }
   });
   updateCartCount();
 }
@@ -153,18 +177,57 @@ function renderLayout() {
 const pages = {
   home() {
     const pick = (id, i) => findProduct(id) || PRODUCTS[i % PRODUCTS.length];
-    document.getElementById("hero-img").src = productImg(pick("tissue-blush", 0));
-    document.getElementById("story-img").src = productImg(pick("banarasi-black", 1));
-    const cols = document.getElementById("collections");
-    cols.classList.toggle("few", CATEGORIES.length < 4);
-    cols.innerHTML = CATEGORIES.map((c) => {
-      const p = PRODUCTS.find((x) => x.category === c);
-      const count = PRODUCTS.filter((x) => x.category === c).length;
-      return `<a class="collection" href="shop.html?cat=${encodeURIComponent(c)}">
-        <img src="${productImg(p)}" alt="${c} sarees"><div class="label"><span>${count} styles</span><h3>${c}</h3></div></a>`;
+    const hero = pick("tissue-blush", 0);
+    document.getElementById("hero-1").src = productImg(hero);
+    document.getElementById("hero-2").src = productImg(pick("banarasi-black", 1));
+    document.getElementById("hero-3").src = productImages(pick("jamawar-peacock", 2)).slice(-1)[0];
+    document.getElementById("hero-tag").href = `product.html?id=${hero.id}`;
+    document.getElementById("hero-tag").innerHTML = `<img src="${productImg(hero)}" alt=""><span><small>Just in</small><b>${hasPrice(hero) ? money(hero.price) : "New"}</b></span>`;
+
+    const words = ["Tissue Silk", "Banarasi", "Jamawar", "Cash on Delivery", "Hand Embroidered", "Delivered Nationwide", "Real Photos"];
+    const run = words.map((w) => `<span>${w}</span>`).join("");
+    document.getElementById("marquee").innerHTML = run + run;
+
+    document.getElementById("featured").innerHTML = PRODUCTS.slice(0, 5).map(productCard).join("");
+
+    document.getElementById("collections").innerHTML = CATEGORIES.map((c, i) => {
+      const list = PRODUCTS.filter((x) => x.category === c);
+      return `<a class="collection reveal d${i}" href="shop.html?cat=${encodeURIComponent(c)}">
+        <div class="frame"><div><img src="${productImg(list[0])}" alt="${c} sarees" loading="lazy"></div></div>
+        <h3>${c}</h3><span>${list.length} ${list.length === 1 ? "piece" : "pieces"} · Explore →</span></a>`;
     }).join("");
-    const featured = PRODUCTS.filter((p) => p.badge).concat(PRODUCTS.filter((p) => !p.badge)).slice(0, 8);
-    document.getElementById("featured").innerHTML = featured.map(productCard).join("");
+
+    const s = pick("banarasi-black", 1);
+    const si = productImages(s);
+    document.getElementById("spot").innerHTML = `
+      <div class="spot-media reveal">
+        <div class="main"><img src="${si[0]}" alt="${esc(s.name)}" loading="lazy"></div>
+        ${si[2] ? `<div class="mini"><img src="${si[2]}" alt="" loading="lazy"></div>` : ""}
+      </div>
+      <div class="spot-copy reveal d1">
+        <span class="kicker">Saree of the week</span>
+        <h2>${esc(s.name).replace("with", "<em>with</em>")}</h2>
+        <p>${esc(s.description)}</p>
+        <ul class="spot-list"><li>${esc(s.fabric)}</li><li>5.5 m saree + 0.8 m blouse piece</li><li>Ready to ship · 3–5 working days</li></ul>
+        <div class="price">${priceHtml(s)}${salePct(s) ? `<span class="save">Save ${salePct(s)}%</span>` : ""}</div>
+        <div class="hero-actions">
+          ${hasPrice(s) ? `<button class="btn" data-add="${s.id}">Add to bag <span class="arrow">→</span></button>` : ""}
+          <a class="btn outline" href="product.html?id=${s.id}">View details</a>
+        </div>
+      </div>`;
+
+    const trust = [
+      [ICON.camera, "Real photos", "Every saree is photographed as it is. No stock images, no filters."],
+      [ICON.truck, "Cash on Delivery", `Pay at your door. Free delivery on orders over ${money(STORE.freeDeliveryOver)}.`],
+      [ICON.swap, "Easy exchange", "Not the right one? Exchange within 7 days of delivery."],
+      [ICON.chat, "Real people on WhatsApp", "Ask for more photos or a video before you buy."],
+    ];
+    document.getElementById("trust").innerHTML = trust.map(([ic, h, p], i) => `<div class="reveal d${i}">${ic}<h4>${h}</h4><p>${p}</p></div>`).join("");
+
+    document.getElementById("lookbook").innerHTML = PRODUCTS.flatMap((p) => productImages(p).map((src) => ({ p, src })))
+      .map(({ p, src }) => `<a href="product.html?id=${p.id}"><img src="${src}" alt="${esc(p.name)}" loading="lazy"><span>${esc(p.name)}</span></a>`).join("");
+    document.getElementById("pay-chips").innerHTML = payChips();
+    document.getElementById("cta-wa").href = waLink("Hi! I'd like help choosing a saree.");
   },
 
   shop() {
@@ -181,8 +244,9 @@ const pages = {
       if (sort === "low") list = [...list].sort((a, b) => pv(a, 1) - pv(b, 1));
       if (sort === "high") list = [...list].sort((a, b) => pv(b, -1) - pv(a, -1));
       grid.innerHTML = list.map(productCard).join("");
-      count.textContent = `${list.length} saree${list.length === 1 ? "" : "s"}`;
-      document.getElementById("shop-title").textContent = cat === "All" ? "Shop All Sarees" : `${cat} Sarees`;
+      count.textContent = `${list.length} piece${list.length === 1 ? "" : "s"} · Cash on Delivery available`;
+      document.getElementById("shop-title").innerHTML = cat === "All" ? "All <em>Sarees</em>" : `${esc(cat)} <em>Sarees</em>`;
+      observeReveals();
     };
     filters.addEventListener("click", (e) => {
       const b = e.target.closest("[data-cat]");
@@ -202,29 +266,34 @@ const pages = {
     document.title = `${p.name} · ${STORE.name}`;
     const imgs = productImages(p);
     const buy = hasPrice(p)
-      ? `<div class="qty"><button data-q="-1">−</button><input id="qty" type="number" min="1" value="1"><button data-q="1">+</button></div>
+      ? `<div class="qty"><button data-q="-1" aria-label="Less">−</button><input id="qty" type="number" min="1" value="1" aria-label="Quantity"><button data-q="1" aria-label="More">+</button></div>
         <div class="buy-row">
           <button class="btn" id="add">Add to bag</button>
-          <button class="btn gold" id="buy">Buy now</button>
-        </div>`
+          <button class="btn gold" id="buy">Buy now <span class="arrow">→</span></button>
+        </div>
+        <a class="text-link" href="${askLink(p)}" target="_blank" rel="noopener">Ask for a video on WhatsApp</a>`
       : `<div class="buy-row"><a class="btn gold" href="${askLink(p)}" target="_blank" rel="noopener">Ask price on WhatsApp</a></div>`;
     root.innerHTML = `<div class="product">
       <div>
         <div class="main-img"><img id="main-img" src="${imgs[0]}" alt="${esc(p.name)}"></div>
         ${imgs.length > 1 ? `<div class="thumbs">${imgs.map((src, i) => `<button class="${i ? "" : "active"}" data-img="${src}" aria-label="Photo ${i + 1}"><img src="${src}" alt=""></button>`).join("")}</div>` : ""}
       </div>
-      <div>
+      <div class="product-info">
         <div class="crumbs"><a href="index.html">Home</a> / <a href="shop.html?cat=${encodeURIComponent(p.category)}">${esc(p.category)}</a></div>
         <h1>${esc(p.name)}</h1>
-        <div class="price">${priceHtml(p)}</div>
+        <div class="price">${priceHtml(p)}${salePct(p) ? `<span class="save">Save ${salePct(p)}%</span>` : ""}</div>
         <p class="desc">${esc(p.description)}</p>
+        ${buy}
         <div class="spec">
           <div><span>Fabric</span><span>${esc(p.fabric)}</span></div>
           <div><span>Length</span><span>5.5 m saree + 0.8 m blouse piece</span></div>
           <div><span>Care</span><span>Dry clean recommended</span></div>
         </div>
-        ${buy}
-        <p class="note">✦ Cash on Delivery available · Delivery in 3–5 working days</p>
+        <div class="assure">
+          <div>${ICON.truck}Cash on Delivery · Delivered in 3–5 working days</div>
+          <div>${ICON.shield}Pay by COD, bank transfer, JazzCash or Easypaisa</div>
+          <div>${ICON.swap}Easy exchange within 7 days</div>
+        </div>
       </div></div>`;
     root.querySelectorAll("[data-img]").forEach((b) => b.addEventListener("click", () => {
       document.getElementById("main-img").src = b.dataset.img;
@@ -248,7 +317,7 @@ const pages = {
     const draw = () => {
       const lines = cartLines();
       if (!lines.length) {
-        root.innerHTML = `<div class="empty"><h2>Your bag is empty</h2><p>Find a saree you love.</p><a class="btn" href="shop.html">Start shopping</a></div>`;
+        root.innerHTML = `<div class="empty"><h2>Your bag is <em>empty</em></h2><p>Find a saree you love.</p><a class="btn" href="shop.html">Start shopping <span class="arrow">→</span></a></div>`;
         return;
       }
       const t = cartTotals();
@@ -256,7 +325,7 @@ const pages = {
         <div>${lines.map((l) => `<div class="cart-item">
           <a href="product.html?id=${l.id}"><img src="${productImg(l.product)}" alt=""></a>
           <div><h3>${esc(l.product.name)}</h3><div class="price">${money(l.product.price)}</div>
-            <div class="qty" style="margin-top:8px"><button data-dec="${l.id}">−</button><input value="${l.qty}" readonly><button data-inc="${l.id}">+</button></div>
+            <div class="qty" style="margin-top:10px"><button data-dec="${l.id}">−</button><input value="${l.qty}" readonly><button data-inc="${l.id}">+</button></div>
             <div><button class="remove" data-remove="${l.id}">Remove</button></div></div>
           <div class="line-total">${money(l.product.price * l.qty)}</div></div>`).join("")}
         </div>
@@ -265,8 +334,9 @@ const pages = {
           <div class="row"><span>Delivery</span><span>${t.delivery ? money(t.delivery) : "Free"}</span></div>
           ${t.delivery ? `<p class="note">Add ${money(STORE.freeDeliveryOver - t.subtotal)} more for free delivery.</p>` : ""}
           <div class="row total"><span>Total</span><span>${money(t.total)}</span></div>
-          <a href="checkout.html" class="btn block">Checkout</a>
+          <a href="checkout.html" class="btn block">Checkout <span class="arrow">→</span></a>
           <a href="shop.html" class="btn outline block" style="margin-top:10px">Continue shopping</a>
+          <div class="pay-chips">${payChips()}</div>
         </aside></div>`;
     };
     root.addEventListener("click", (e) => {
@@ -285,55 +355,68 @@ const pages = {
     const root = document.getElementById("checkout");
     const lines = cartLines();
     if (!lines.length) {
-      root.innerHTML = `<div class="empty"><h2>Your bag is empty</h2><a class="btn" href="shop.html">Start shopping</a></div>`;
+      root.innerHTML = `<div class="empty"><h2>Your bag is <em>empty</em></h2><a class="btn" href="shop.html">Start shopping</a></div>`;
       return;
     }
     const t = cartTotals();
     root.innerHTML = `<div class="cart-layout">
       <form id="form" novalidate>
-        <h2 style="color:var(--maroon);font-size:30px">Delivery details</h2>
+        <h2 class="form-h">Delivery details</h2>
         <div class="form-grid">
           <div class="full"><label for="name">Full name *</label><input id="name" required autocomplete="name"></div>
-          <div><label for="phone">Phone number *</label><input id="phone" required type="tel" autocomplete="tel" placeholder="03xx xxxxxxx"></div>
+          <div><label for="phone">Phone / WhatsApp *</label><input id="phone" required type="tel" autocomplete="tel" placeholder="03xx xxxxxxx"></div>
           <div><label for="city">City *</label><input id="city" required autocomplete="address-level2"></div>
           <div class="full"><label for="address">Full address *</label><textarea id="address" rows="3" required autocomplete="street-address"></textarea></div>
-          <div class="full"><label for="notes">Order notes (optional)</label><input id="notes" placeholder="e.g. blouse stitching size, delivery time"></div>
+          <div class="full"><label for="notes">Order notes (optional)</label><input id="notes" placeholder="e.g. blouse stitching, best time to deliver"></div>
         </div>
-        <h2 style="color:var(--maroon);font-size:30px;margin-top:30px">Payment</h2>
-        <label class="pay-option"><input type="radio" checked> <span><strong>Cash on Delivery</strong><br><span class="note">Pay when your saree arrives at your door.</span></span></label>
-        <p id="err" class="note" style="color:#b3261e;min-height:1.5em"></p>
+        <h2 class="form-h" style="margin-top:40px">Payment method</h2>
+        <div class="pay-methods">
+          ${PAY_METHODS.map((m, i) => `<label class="pay-option"><input type="radio" name="pay" value="${m.id}" ${i ? "" : "checked"}>
+            <span><strong>${m.name}${m.tag ? `<span class="tag">${m.tag}</span>` : ""}</strong><span class="note">${m.note}</span>
+            <span class="pd" data-pd="${m.id}" ${i ? "hidden" : ""}>${payDetailsHtml(m.id)}</span></span></label>`).join("")}
+        </div>
+        <p id="err" class="note" style="color:#b3261e;min-height:1.5em;margin-top:14px"></p>
         <button class="btn block" type="submit">Place order · ${money(t.total)}</button>
-        <p class="note" style="text-align:center">Your order will be sent to us on WhatsApp to confirm.</p>
+        <p class="note" style="text-align:center">Your order is sent to us on WhatsApp and we confirm it right away.</p>
       </form>
       <aside class="summary"><h2>Your order</h2>
-        ${lines.map((l) => `<div class="mini-item"><span>${esc(l.product.name)} × ${l.qty}</span><span>${money(l.product.price * l.qty)}</span></div>`).join("")}
-        <div class="row" style="margin-top:10px"><span>Subtotal</span><span>${money(t.subtotal)}</span></div>
+        ${lines.map((l) => `<div class="mini-item"><img src="${productImg(l.product)}" alt=""><span class="n">${esc(l.product.name)} × ${l.qty}</span><span>${money(l.product.price * l.qty)}</span></div>`).join("")}
+        <div class="row" style="margin-top:12px"><span>Subtotal</span><span>${money(t.subtotal)}</span></div>
         <div class="row"><span>Delivery</span><span>${t.delivery ? money(t.delivery) : "Free"}</span></div>
         <div class="row total"><span>Total</span><span>${money(t.total)}</span></div>
       </aside></div>`;
 
-    document.getElementById("form").addEventListener("submit", (e) => {
+    const form = document.getElementById("form");
+    form.addEventListener("change", (e) => {
+      if (e.target.name !== "pay") return;
+      form.querySelectorAll("[data-pd]").forEach((el) => (el.hidden = el.dataset.pd !== e.target.value));
+    });
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
       const v = (id) => document.getElementById(id).value.trim();
       const err = document.getElementById("err");
       if (!v("name") || !v("phone") || !v("city") || !v("address")) { err.textContent = "Please fill in all required fields."; return; }
       if (v("phone").replace(/\D/g, "").length < 10) { err.textContent = "Please enter a valid phone number."; return; }
+      const payId = form.querySelector("input[name=pay]:checked").value;
+      const pay = PAY_METHODS.find((m) => m.id === payId);
       const orderNo = "FFS-" + Date.now().toString().slice(-6);
       const msg = [
         `*New order ${orderNo}* — ${STORE.name}`, "",
         ...lines.map((l) => `• ${l.product.name} × ${l.qty} = ${money(l.product.price * l.qty)}`), "",
         `Subtotal: ${money(t.subtotal)}`, `Delivery: ${t.delivery ? money(t.delivery) : "Free"}`, `*Total: ${money(t.total)}*`,
-        `Payment: Cash on Delivery`, "",
+        `Payment: ${pay.name}`, "",
         `Name: ${v("name")}`, `Phone: ${v("phone")}`, `City: ${v("city")}`, `Address: ${v("address")}`,
-        v("notes") ? `Notes: ${v("notes")}` : "",
-      ].filter((x, i, a) => x !== "" || a[i - 1] !== "").join("\n");
-      const wa = `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(msg)}`;
+        v("notes") ? `Notes: ${v("notes")}` : null,
+      ].filter((x) => x !== null).join("\n").trim();
+      const wa = waLink(msg);
       saveCart([]);
+      scrollTo({ top: 0 });
       root.innerHTML = `<div class="success"><div class="tick">✓</div>
         <h1>Thank you, ${esc(v("name").split(" ")[0])}!</h1>
-        <p>Your order <strong>${orderNo}</strong> is ready. Tap below to send it to us on WhatsApp — we'll confirm it right away.</p>
-        <a class="btn" href="${wa}" target="_blank" rel="noopener">Send order on WhatsApp</a>
-        <p class="note" style="margin-top:18px"><a href="shop.html" style="text-decoration:underline">Continue shopping</a></p></div>`;
+        <p>Your order <strong>${orderNo}</strong> (${money(t.total)}) is ready. Tap below to send it to us on WhatsApp — we'll confirm it right away.</p>
+        ${payId !== "cod" ? `<p><strong>Paying by ${pay.name}:</strong> please send ${money(t.total)} and share the payment screenshot in the same WhatsApp chat.</p>${payDetailsHtml(payId)}` : ""}
+        <a class="btn gold" href="${wa}" target="_blank" rel="noopener">${ICON.wa.replace("<svg", '<svg width="18" height="18"')} Send order on WhatsApp</a>
+        <p class="note" style="margin-top:20px"><a href="shop.html" class="text-link">Continue shopping</a></p></div>`;
       window.open(wa, "_blank", "noopener");
     });
   },
@@ -343,4 +426,5 @@ document.addEventListener("DOMContentLoaded", () => {
   renderLayout();
   const page = document.body.dataset.page;
   if (pages[page]) pages[page]();
+  observeReveals();
 });

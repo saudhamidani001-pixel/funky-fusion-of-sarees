@@ -4,62 +4,130 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Funky Fusion Of Sarees · Handpicked Sarees Online</title>
-  <meta name="description" content="Shop embroidered tissue silk, Banarasi and jamawar sarees online. Cash on Delivery nationwide.">
+  <meta name="description" content="Shop hand-embroidered tissue silk, Banarasi and jamawar sarees online. Cash on Delivery, bank transfer, JazzCash & Easypaisa. Delivered nationwide.">
+  <meta property="og:title" content="Funky Fusion Of Sarees">
+  <meta property="og:description" content="Six yards of pure drama. Handpicked sarees, delivered to your door.">
+  <meta property="og:image" content="images/tissue-blush.jpg">
+  <meta name="theme-color" content="#14100e">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body data-page="home">
 
+  <!-- ============ HERO ============ -->
   <section class="hero">
-    <div class="container">
-      <div>
-        <div class="eyebrow">New Festive Collection</div>
-        <h1>Where tradition meets a <em>funky</em> twist</h1>
-        <p>Handpicked tissue silk, Banarasi and jamawar sarees — draped in heritage, styled for today.</p>
-        <div class="actions">
-          <a href="shop.html" class="btn gold">Shop the collection</a>
-          <a href="shop.html?cat=Tissue%20Silk" class="btn outline">New tissue silks</a>
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <span class="kicker">The Festive Edit · 2026</span>
+        <h1 class="hero-title">
+          <span class="line"><span class="word">Six yards</span></span>
+          <span class="line"><span class="word">of <em>pure</em></span></span>
+          <span class="line"><span class="word"><span class="outline-word">drama.</span></span></span>
+        </h1>
+        <p>Hand-embroidered tissue silks, ghungroo Banarasis and royal jamawars — chosen one by one, photographed for real, delivered to your door.</p>
+        <div class="hero-actions">
+          <a href="shop.html" class="btn gold">Shop the edit <span class="arrow">→</span></a>
+          <a href="#spotlight" class="btn ghost-light">Saree of the week</a>
+        </div>
+        <div class="hero-proof">
+          <div><strong>100%</strong>Real photos</div>
+          <div><strong>COD</strong>Nationwide</div>
+          <div><strong>7 days</strong>Easy exchange</div>
         </div>
       </div>
-      <div class="hero-art"><img id="hero-img" alt="Blush pink embroidered tissue silk saree"></div>
-    </div>
-  </section>
-  <div class="motif"></div>
 
-  <section class="features">
-    <div class="container">
-      <div><div class="icon">✦</div><h4>Cash on Delivery</h4><p>Pay at your doorstep</p></div>
-      <div><div class="icon">✦</div><h4>Free Delivery</h4><p>On orders over Rs. 10,000</p></div>
-      <div><div class="icon">✦</div><h4>Handpicked Quality</h4><p>Every saree checked by hand</p></div>
-      <div><div class="icon">✦</div><h4>Easy Exchange</h4><p>Within 7 days of delivery</p></div>
+      <div class="hero-visual">
+        <figure class="hv hv-1 arch"><img id="hero-1" alt="Blush pink embroidered tissue silk saree"></figure>
+        <figure class="hv hv-2 arch"><img id="hero-2" alt="Black Banarasi saree with gold zari border"></figure>
+        <figure class="hv hv-3"><img id="hero-3" alt="Peacock blue jamawar saree pallu"></figure>
+        <a class="hero-tag" id="hero-tag" href="shop.html"></a>
+        <div class="badge-spin" aria-hidden="true">
+          <svg class="spin" viewBox="0 0 120 120">
+            <defs><path id="circ" d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
+            <text font-family="Manrope, sans-serif" font-size="10.5" font-weight="600" letter-spacing="3.6" fill="#e9d4a1">
+              <textPath href="#circ">FUNKY FUSION ✦ OF SAREES ✦ HANDPICKED ✦</textPath>
+            </text>
+          </svg>
+          <div class="center">ff</div>
+        </div>
+      </div>
     </div>
+    <div class="scroll-cue">Scroll</div>
   </section>
 
+  <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
+
+  <!-- ============ THE EDIT ============ -->
   <section class="section">
     <div class="container">
-      <div class="section-head"><div class="eyebrow">Collections</div><h2>Shop by style</h2><div class="divider"></div></div>
+      <div class="section-head reveal">
+        <div><span class="kicker">New arrivals</span><h2>The <em>Edit</em></h2></div>
+        <p>Every piece is photographed as it is — no filters, no surprises. What you see is exactly what arrives at your door.</p>
+      </div>
+      <div class="grid edit" id="featured"></div>
+      <div style="text-align:center;margin-top:56px" class="reveal"><a href="shop.html" class="btn outline">View all sarees <span class="arrow">→</span></a></div>
+    </div>
+  </section>
+
+  <!-- ============ COLLECTIONS ============ -->
+  <section class="section dark">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="kicker">Collections</span><h2>Shop by <em>weave</em></h2>
+      </div>
       <div class="collections" id="collections"></div>
     </div>
   </section>
 
-  <section class="section" style="padding-top:0">
+  <!-- ============ SPOTLIGHT ============ -->
+  <section class="section" id="spotlight">
+    <div class="container spotlight" id="spot"></div>
+  </section>
+
+  <!-- ============ TRUST ============ -->
+  <section class="section tight" style="padding-top:20px">
     <div class="container">
-      <div class="section-head"><div class="eyebrow">Loved by you</div><h2>Featured sarees</h2><div class="divider"></div></div>
-      <div class="grid" id="featured"></div>
-      <div style="text-align:center;margin-top:40px"><a href="shop.html" class="btn outline">View all sarees</a></div>
+      <div class="trust" id="trust"></div>
     </div>
   </section>
 
-  <section class="section story" style="background:var(--cream)">
+  <!-- ============ LOOKBOOK ============ -->
+  <section class="section" style="background:var(--sand)">
     <div class="container">
-      <img id="story-img" alt="Black Banarasi saree with gold zari border">
-      <div>
-        <div class="section-head" style="text-align:left;margin-bottom:10px"><div class="eyebrow">Our story</div></div>
-        <h2>Six yards of heritage, one bold idea</h2>
-        <p>Funky Fusion Of Sarees began with a simple love: the timeless saree. We bring together classic weaves like Banarasi and jamawar with fresh, modern touches — hand-embroidered tissue silks, ghungroo lace and bold colour — so every woman can wear a saree her way.</p>
-        <a href="shop.html" class="btn" style="margin-top:10px">Find your drape</a>
+      <div class="section-head reveal">
+        <div><span class="kicker">Lookbook</span><h2>Up <em>close</em></h2></div>
+        <p>Zari, sequins, ghungroo and hand-knotted tassels — swipe through the details.</p>
+      </div>
+    </div>
+    <div class="lookbook reveal" id="lookbook"></div>
+  </section>
+
+  <!-- ============ HOW TO ORDER ============ -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head reveal">
+        <div><span class="kicker">Simple & safe</span><h2>How to <em>order</em></h2></div>
+        <div class="pay-chips" id="pay-chips"></div>
+      </div>
+      <div class="steps">
+        <div class="step reveal"><h4>Pick your saree</h4><p>Browse the edit and add your favourite to the bag.</p></div>
+        <div class="step reveal d1"><h4>Enter your address</h4><p>Takes less than a minute. No account needed.</p></div>
+        <div class="step reveal d2"><h4>Choose how to pay</h4><p>Cash on Delivery, bank transfer, JazzCash or Easypaisa.</p></div>
+        <div class="step reveal d3"><h4>We confirm on WhatsApp</h4><p>Your order is confirmed and delivered in 3–5 working days.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="cta-band reveal">
+        <span class="kicker">Need help choosing?</span>
+        <h2>Talk to us on <em>WhatsApp</em></h2>
+        <p>Ask for more photos, a video of the saree, or help matching a blouse. We reply fast.</p>
+        <a class="btn gold" id="cta-wa" target="_blank" rel="noopener">Chat with us <span class="arrow">→</span></a>
       </div>
     </div>
   </section>
