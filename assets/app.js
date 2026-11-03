@@ -17,6 +17,28 @@ const ICON = {
   chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 5h16v11H9l-5 4z"/></svg>',
 };
 
+// ---------- Traditional ornaments ----------
+const ORNAMENT = '<svg viewBox="0 0 150 22" fill="currentColor" aria-hidden="true"><path d="M0 11h52M98 11h52" stroke="currentColor" stroke-width="1" fill="none"/><circle cx="56" cy="11" r="1.8"/><circle cx="94" cy="11" r="1.8"/><path d="M75 1c3 4 7 7 12 10-5 3-9 6-12 10-3-4-7-7-12-10 5-3 9-6 12-10Z" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M75 6.5c1.6 2 3.4 3.4 5.6 4.5-2.2 1.1-4 2.5-5.6 4.5-1.6-2-3.4-3.4-5.6-4.5 2.2-1.1 4-2.5 5.6-4.5Z"/><path d="M62 11c2-3 5-4 8-3M88 11c-2-3-5-4-8-3M62 11c2 3 5 4 8 3M88 11c-2 3-5 4-8 3" stroke="currentColor" stroke-width=".9" fill="none"/></svg>';
+function mandalaSvg() {
+  const ring = (n, fn) => Array.from({ length: n }, (_, i) => fn((360 / n) * i)).join("");
+  return `<svg viewBox="-100 -100 200 200" fill="none" stroke="currentColor" stroke-width=".5">
+    <circle r="97"/><circle r="93"/><circle r="62"/><circle r="58"/><circle r="30"/><circle r="12"/>
+    ${ring(48, (a) => `<circle cx="0" cy="-95" r="1.3" fill="currentColor" transform="rotate(${a})"/>`)}
+    ${ring(24, (a) => `<path d="M0 -62 C9 -72 9 -84 0 -92 C-9 -84 -9 -72 0 -62Z" transform="rotate(${a})"/>`)}
+    ${ring(24, (a) => `<path d="M0 -66 C4 -72 4 -80 0 -86 C-4 -80 -4 -72 0 -66Z" transform="rotate(${a + 7.5})"/>`)}
+    ${ring(16, (a) => `<path d="M0 -30 C12 -38 12 -50 0 -58 C-12 -50 -12 -38 0 -30Z" transform="rotate(${a})"/>`)}
+    ${ring(16, (a) => `<circle cx="0" cy="-44" r="2" fill="currentColor" transform="rotate(${a})"/>`)}
+    ${ring(8, (a) => `<path d="M0 -12 L6 -22 L0 -30 L-6 -22Z" transform="rotate(${a})"/>`)}
+    ${ring(8, (a) => `<path d="M0 0 L0 -12" transform="rotate(${a + 22.5})"/>`)}
+  </svg>`;
+}
+function addOrnaments() {
+  document.querySelectorAll(".section-head h2, .page-title h1").forEach((h) => {
+    if (h.nextElementSibling?.classList.contains("ornament")) return;
+    h.insertAdjacentHTML("afterend", `<div class="ornament">${ORNAMENT}</div>`);
+  });
+}
+
 // ---------- Product helpers ----------
 const productImages = (p) => (p.images && p.images.length ? p.images : p.image ? [p.image] : []);
 const productImg = (p) => productImages(p)[0] || "";
@@ -45,10 +67,24 @@ function payDetailsRows(id) {
 function payDetailsHtml(id) {
   if (id === "cod") return "";
   const rows = payDetailsRows(id);
+  const copyable = ["Account no.", "IBAN", "JazzCash", "Easypaisa"];
   return `<div class="pay-details">${rows.length
-    ? rows.map(([k, v]) => `<div><span>${k}</span><strong>${esc(v)}</strong></div>`).join("")
+    ? rows.map(([k, v]) => `<div><span>${k}</span><span class="pv"><strong>${esc(v)}</strong>${copyable.includes(k) ? `<button type="button" class="copy" data-copy="${esc(v)}">Copy</button>` : ""}</span></div>`).join("")
+      + `<p class="pd-note">Send the exact total and share the payment screenshot on WhatsApp.</p>`
     : `Our account details will be sent to you on WhatsApp when we confirm your order.`}</div>`;
 }
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-copy]");
+  if (!b) return;
+  e.preventDefault();
+  try { await navigator.clipboard.writeText(b.dataset.copy); }
+  catch {
+    const t = document.createElement("textarea"); t.value = b.dataset.copy; document.body.appendChild(t); t.select();
+    try { document.execCommand("copy"); } catch {} t.remove();
+  }
+  b.textContent = "Copied ✓";
+  setTimeout(() => (b.textContent = "Copy"), 1600);
+});
 const payChips = () => PAY_METHODS.map((m) => `<span>${m.id === "wallet" ? "JazzCash · Easypaisa" : m.name}</span>`).join("");
 
 // ---------- Cart (stored in this browser) ----------
@@ -177,6 +213,7 @@ function renderLayout() {
 const pages = {
   home() {
     const pick = (id, i) => findProduct(id) || PRODUCTS[i % PRODUCTS.length];
+    document.getElementById("mandala").innerHTML = mandalaSvg();
     const hero = pick("tissue-blush", 0);
     document.getElementById("hero-1").src = productImg(hero);
     document.getElementById("hero-2").src = productImg(pick("banarasi-black", 1));
@@ -426,5 +463,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderLayout();
   const page = document.body.dataset.page;
   if (pages[page]) pages[page]();
+  addOrnaments();
   observeReveals();
 });

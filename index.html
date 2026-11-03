@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#14100e">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body data-page="home">
@@ -20,6 +20,7 @@
   <section class="hero">
     <div class="container hero-inner">
       <div class="hero-copy">
+        <p class="urdu" lang="ur">چھ گز کا جادو</p>
         <span class="kicker">The Festive Edit · 2026</span>
         <h1 class="hero-title">
           <span class="line"><span class="word">Six yards</span></span>
@@ -39,7 +40,8 @@
       </div>
 
       <div class="hero-visual">
-        <figure class="hv hv-1 arch"><img id="hero-1" alt="Blush pink embroidered tissue silk saree"></figure>
+        <div class="hero-mandala" id="mandala" aria-hidden="true"></div>
+        <figure class="hv hv-1"><img id="hero-1" alt="Blush pink embroidered tissue silk saree"></figure>
         <figure class="hv hv-2 arch"><img id="hero-2" alt="Black Banarasi saree with gold zari border"></figure>
         <figure class="hv hv-3"><img id="hero-3" alt="Peacock blue jamawar saree pallu"></figure>
         <a class="hero-tag" id="hero-tag" href="shop.html"></a>
@@ -57,7 +59,9 @@
     <div class="scroll-cue">Scroll</div>
   </section>
 
+  <div class="zari thin" aria-hidden="true"></div>
   <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
+  <div class="zari thin" aria-hidden="true"></div>
 
   <!-- ============ THE EDIT ============ -->
   <section class="section">
@@ -72,7 +76,8 @@
   </section>
 
   <!-- ============ COLLECTIONS ============ -->
-  <section class="section dark">
+  <div class="zari" aria-hidden="true"></div>
+  <section class="section dark jaali-bg">
     <div class="container">
       <div class="section-head center reveal">
         <span class="kicker">Collections</span><h2>Shop by <em>weave</em></h2>
@@ -81,6 +86,7 @@
     </div>
   </section>
 
+  <div class="zari" aria-hidden="true"></div>
   <!-- ============ SPOTLIGHT ============ -->
   <section class="section" id="spotlight">
     <div class="container spotlight" id="spot"></div>
