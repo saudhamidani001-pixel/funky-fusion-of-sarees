@@ -1,0 +1,4 @@
+/products/:handle   /product.html?id=:handle   301
+/collections/*      /shop.html                 301
+/cart               /cart.html                 301
+/pages/*            /                          302
