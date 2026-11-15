@@ -9,10 +9,15 @@ const STORE = {
   // Delivery charges by city.
   deliveryFeeKarachi: 250,
   deliveryFeeOtherCities: 300,
-  deliveryDays: "about 40 days",
+  deliveryDays: "about 30 days",
 
   // Booking: the share of the saree price paid in advance. The rest is paid on delivery.
   bookingPercent: 10,
+
+  // Sanity is the admin page where the owner edits sarees and photos herself.
+  // While projectId is empty, the site uses the saree list saved in catalog.js and the values in this file.
+  // Once the project ID is pasted here, the site reads everything from Sanity.
+  sanity: { projectId: "", dataset: "production" },
 
   // Sarees to hide from the whole site. Add or remove a saree's id (the part after "product.html?id=") to hide or show it.
   hidden: [
@@ -30,14 +35,15 @@ const STORE = {
   // Celebrities and creators seen in our sarees. Each needs a name and either "video" or "photo". "note" is one short line. "poster" is the still picture shown before a video plays.
   // Use only people who posted or agreed to it. Videos must be in the H.264 format to play on every phone.
   spotted: [
-    { name: "Hina Chaudhary", note: "Worn for a drama shoot", video: "images/celebs/hina-chaudhary.mp4", poster: "images/celebs/hina-chaudhary.jpg" },
-    { name: "Juvaria Abbasi", note: "Worn in Meri Zindagi Hai Tu", video: "images/celebs/juvaria-abbasi.mp4", poster: "images/celebs/juvaria-abbasi.jpg" },
-    { name: "Arisha Anwer", note: "Model", video: "images/celebs/arisha-anwer.mp4", poster: "images/celebs/arisha-anwer.jpg" },
     { name: "Birjees Farooqui", note: "Spotted in our saree", photo: "images/celebs/birjees-farooqui.jpg" },
     { name: "Erum Ali", note: "In our saree", video: "images/celebs/erum-ali.mp4", poster: "images/celebs/erum-ali.jpg" },
     { name: "Simra Farooqui", note: "Content creator", video: "images/celebs/simra-farooqui.mp4", poster: "images/celebs/simra-farooqui.jpg" },
-    { name: "Anum Nadeem", note: "Content creator", video: "images/celebs/anum-nadeem.mp4", poster: "images/celebs/anum-nadeem.jpg" },
     { name: "Afsa Jay", note: "In our red sequin saree", photo: "images/celebs/afsa-jay.jpg" },
+    { name: "Anum Nadeem", note: "Content creator", video: "images/celebs/anum-nadeem.mp4", poster: "images/celebs/anum-nadeem.jpg" },
+    // The three below are also in the hero, so they come last here.
+    { name: "Juvaria Abbasi", note: "Worn in Meri Zindagi Hai Tu", video: "images/celebs/juvaria-abbasi.mp4", poster: "images/celebs/juvaria-abbasi.jpg" },
+    { name: "Hina Chaudhary", note: "Worn for a drama shoot", video: "images/celebs/hina-chaudhary.mp4", poster: "images/celebs/hina-chaudhary.jpg" },
+    { name: "Arisha Anwer", note: "Model", video: "images/celebs/arisha-anwer.mp4", poster: "images/celebs/arisha-anwer.jpg" },
   ],
 
   // Customer reviews. Real ones only. "via" says where she sent it. "name", "city" and "saree" are optional.
